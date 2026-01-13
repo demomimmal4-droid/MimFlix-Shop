@@ -48,7 +48,7 @@ export class AdminService {
         allProducts = allProducts.concat(products);
       }
     });
-    return allProducts.sort((a, b) => a.name.localeCompare(b.name));
+    return allProducts;
   }
 
   async updateProduct(updatedProduct: Product): Promise<void> {

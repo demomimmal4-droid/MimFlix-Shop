@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
-// Fix: Use firebase/compat/app for app initialization and side effects for auth.
+// FIX: The modular 'firebase/app' imports were causing errors. Switched to using the compat 'firebase' object for initialization.
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 import 'firebase/compat/firestore';
-
 import { getFirestore, type Firestore } from 'firebase/firestore';
 
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyBoR3H7vML8177WrACSXixSbEGOgyrCX1U",
   authDomain: "mimflix-shop.firebaseapp.com",
@@ -21,18 +21,16 @@ const firebaseConfig = {
 })
 export class FirebaseService {
   public firestore: Firestore;
-  // Fix: Use the Auth type from the compat library.
   public auth: firebase.auth.Auth;
 
   constructor() {
-    // Fix: Use compat initialization to prevent re-initialization.
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
-    const app = firebase.app();
-    // Fix: Get auth instance from the compat library.
-    this.auth = firebase.auth(app);
-    // Note: Firestore continues to use the modular API, which works.
+    // Initialize with the compat SDK to ensure it's available for both modular and compat services.
+    const app = !firebase.apps.length ? firebase.initializeApp(firebaseConfig) : firebase.app();
+    
+    // The compat 'firebase.auth()' will automatically use the initialized app.
+    this.auth = firebase.auth();
+    
+    // The modular 'getFirestore()' will also use the initialized app.
     this.firestore = getFirestore(app);
   }
 }
