@@ -1,5 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { GoogleGenAI, Type } from "@google/genai";
+import { FirebaseService } from './firebase.service';
+import { doc, getDoc, setDoc, Firestore } from 'firebase/firestore';
 
 export interface Product {
   name: string;
@@ -12,16 +14,46 @@ export interface Product {
 })
 export class GeminiService {
   private ai: GoogleGenAI;
+  private firebaseService = inject(FirebaseService);
+  private firestore: Promise<Firestore>;
 
   constructor() {
-    // IMPORTANT: This relies on `process.env.API_KEY` being available in the execution environment.
     if (!process.env.API_KEY) {
       throw new Error("API_KEY environment variable not set.");
     }
     this.ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    this.firestore = this.firebaseService.firestore;
   }
 
-  async generateProductIdeas(category: string): Promise<Product[]> {
+  async getOrGenerateProducts(category: string): Promise<Product[]> {
+    const db = await this.firestore;
+    const categoryId = category.trim().toLowerCase().replace(/\s+/g, '-');
+    const categoryDocRef = doc(db, 'product_categories', categoryId);
+
+    try {
+      const docSnap = await getDoc(categoryDocRef);
+      if (docSnap.exists()) {
+        console.log(`[Cache Hit] Fetched '${category}' from Firestore.`);
+        return docSnap.data().products as Product[];
+      }
+    } catch (error) {
+      console.error("Firestore read failed, will try generating directly:", error);
+    }
+    
+    console.log(`[Cache Miss] Generating products for '${category}' with Gemini.`);
+    const products = await this.generateAndParseProducts(category);
+
+    try {
+      await setDoc(categoryDocRef, { products });
+      console.log(`[Cache Set] Stored products for '${category}' in Firestore.`);
+    } catch (error) {
+      console.error("Firestore write failed, returning products without caching:", error);
+    }
+    
+    return products;
+  }
+  
+  private async generateAndParseProducts(category: string): Promise<Product[]> {
     const prompt = `Generate 8 creative and compelling e-commerce products for the category: "${category}". For each product, provide a name, a short, appealing description (around 20-30 words), and a realistic price in USD.`;
 
     const responseSchema = {
@@ -61,7 +93,6 @@ export class GeminiService {
       const jsonString = response.text.trim();
       const parsedData = JSON.parse(jsonString);
 
-      // The response is already an array of products due to the schema.
       return parsedData as Product[];
     } catch (error) {
       console.error('Error calling Gemini API:', error);

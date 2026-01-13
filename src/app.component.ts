@@ -18,7 +18,7 @@ export class AppComponent {
   loading = signal(false);
   error = signal<string | null>(null);
 
-  async generateIdeas(): Promise<void> {
+  async findProducts(): Promise<void> {
     if (!this.category() || this.loading()) {
       return;
     }
@@ -28,7 +28,7 @@ export class AppComponent {
     this.products.set([]);
 
     try {
-      const generatedProducts = await this.geminiService.generateProductIdeas(this.category());
+      const generatedProducts = await this.geminiService.getOrGenerateProducts(this.category());
       this.products.set(generatedProducts);
     } catch (e) {
       console.error(e);
@@ -40,6 +40,6 @@ export class AppComponent {
 
   // Initial generation on load for better UX
   constructor() {
-    this.generateIdeas();
+    this.findProducts();
   }
 }
