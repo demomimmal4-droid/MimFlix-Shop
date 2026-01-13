@@ -1,45 +1,24 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { GeminiService, Product } from './services/gemini.service';
-import { ProductCardComponent } from './components/product-card/product-card.component';
+import { RouterOutlet, RouterLink } from '@angular/router';
+import { AuthModalComponent } from './components/auth-modal/auth-modal.component';
+import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
+  // FIX: Corrected typo from `Change-DetectionStrategy` to `ChangeDetectionStrategy`.
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, FormsModule, ProductCardComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, AuthModalComponent],
 })
 export class AppComponent {
-  private readonly geminiService = inject(GeminiService);
+  private readonly authService = inject(AuthService);
 
-  category = signal('latest tech gadgets');
-  products = signal<Product[]>([]);
-  loading = signal(false);
-  error = signal<string | null>(null);
+  showAuthModal = signal(false);
+  currentUser = this.authService.currentUser;
+  currentUserProfile = this.authService.currentUserProfile;
 
-  async findProducts(): Promise<void> {
-    if (!this.category() || this.loading()) {
-      return;
-    }
-
-    this.loading.set(true);
-    this.error.set(null);
-    this.products.set([]);
-
-    try {
-      const generatedProducts = await this.geminiService.getOrGenerateProducts(this.category());
-      this.products.set(generatedProducts);
-    } catch (e) {
-      console.error(e);
-      this.error.set('Failed to find products. Please check the console for more details.');
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
-  // Initial generation on load for better UX
-  constructor() {
-    this.findProducts();
+  logout(): void {
+    this.authService.logout();
   }
 }

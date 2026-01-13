@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
-// Fix: Use Firebase compat libraries to avoid module resolution errors with 'firebase/app'.
+// Fix: Use firebase/compat/app for app initialization and side effects for auth.
 import firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
 import 'firebase/compat/firestore';
-import { getFirestore, Firestore } from 'firebase/firestore';
+
+import { getFirestore, type Firestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBoR3H7vML8177WrACSXixSbEGOgyrCX1U",
@@ -18,16 +20,19 @@ const firebaseConfig = {
   providedIn: 'root'
 })
 export class FirebaseService {
-  public firestore: Promise<Firestore>;
+  public firestore: Firestore;
+  // Fix: Use the Auth type from the compat library.
+  public auth: firebase.auth.Auth;
 
   constructor() {
-    this.firestore = this.init();
-  }
-
-  private async init(): Promise<Firestore> {
-    // Fix: Use compat API for initialization. This is functionally equivalent to the
-    // previous modular approach but should resolve the import errors.
-    const app = firebase.apps.length === 0 ? firebase.initializeApp(firebaseConfig) : firebase.app();
-    return getFirestore(app);
+    // Fix: Use compat initialization to prevent re-initialization.
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const app = firebase.app();
+    // Fix: Get auth instance from the compat library.
+    this.auth = firebase.auth(app);
+    // Note: Firestore continues to use the modular API, which works.
+    this.firestore = getFirestore(app);
   }
 }

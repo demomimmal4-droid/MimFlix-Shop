@@ -1,0 +1,73 @@
+<div class="fixed inset-0 bg-black/60 z-30 flex items-center justify-center p-4" (click)="onCancel()">
+  <div class="bg-white rounded-lg shadow-2xl w-full max-w-lg mx-auto" (click)="$event.stopPropagation()">
+    <form (submit)="onSave()">
+      <div class="p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Edit Product</h2>
+        <div class="space-y-4">
+          <div>
+            <label for="productName" class="block text-sm font-medium text-gray-700">Product Name</label>
+            <input 
+              id="productName"
+              name="productName"
+              type="text" 
+              [(ngModel)]="editableProduct().name"
+              required
+              class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+            >
+          </div>
+          <div>
+            <label for="productDescription" class="block text-sm font-medium text-gray-700">Description</label>
+            <textarea 
+              id="productDescription"
+              name="productDescription"
+              rows="3"
+              [(ngModel)]="editableProduct().description"
+              required
+              class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+            ></textarea>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="productPrice" class="block text-sm font-medium text-gray-700">Price (USD)</label>
+              <input 
+                id="productPrice"
+                name="productPrice"
+                type="number" 
+                step="0.01"
+                min="0"
+                [(ngModel)]="editableProduct().price"
+                required
+                class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+              >
+            </div>
+            <div>
+              <label for="productStock" class="block text-sm font-medium text-gray-700">Stock Quantity</label>
+              <input 
+                id="productStock"
+                name="productStock"
+                type="number"
+                min="0"
+                [(ngModel)]="editableProduct().stock"
+                required
+                class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-gray-50 px-6 py-4 flex justify-end items-center gap-3 rounded-b-lg">
+        <button 
+            type="button" 
+            (click)="onCancel()"
+            class="px-5 py-2 bg-gray-200 text-gray-700 text-sm font-semibold rounded-md hover:bg-gray-300 transition-colors duration-300">
+            Cancel
+        </button>
+        <button 
+            type="submit"
+            class="px-5 py-2 bg-orange-500 text-white text-sm font-semibold rounded-md hover:bg-orange-600 transition-colors duration-300 shadow-sm">
+            Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,15 @@
+<div class="fixed inset-0 bg-black/60 z-30 flex items-center justify-center p-4" (click)="close.emit()">
+  <div class="bg-white rounded-lg shadow-2xl w-full max-w-md mx-auto" (click)="$event.stopPropagation()">
+      @if (showLogin()) {
+        <app-login 
+          (authSuccess)="onAuthSuccess()"
+          (switchToSignup)="showLogin.set(false)">
+        </app-login>
+      } @else {
+        <app-signup 
+          (authSuccess)="onAuthSuccess()"
+          (switchToLogin)="showLogin.set(true)">
+        </app-signup>
+      }
+  </div>
+</div>

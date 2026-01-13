@@ -1,12 +1,15 @@
 import { Injectable, inject } from '@angular/core';
 import { GoogleGenAI, Type } from "@google/genai";
 import { FirebaseService } from './firebase.service';
-import { doc, getDoc, setDoc, Firestore } from 'firebase/firestore';
+import { doc, getDoc, setDoc, Firestore, collection } from 'firebase/firestore';
 
 export interface Product {
+  id: string;
   name: string;
   description: string;
   price: number;
+  stock: number;
+  category: string;
 }
 
 @Injectable({
@@ -15,7 +18,7 @@ export interface Product {
 export class GeminiService {
   private ai: GoogleGenAI;
   private firebaseService = inject(FirebaseService);
-  private firestore: Promise<Firestore>;
+  private firestore: Firestore;
 
   constructor() {
     if (!process.env.API_KEY) {
@@ -26,7 +29,7 @@ export class GeminiService {
   }
 
   async getOrGenerateProducts(category: string): Promise<Product[]> {
-    const db = await this.firestore;
+    const db = this.firestore;
     const categoryId = category.trim().toLowerCase().replace(/\s+/g, '-');
     const categoryDocRef = doc(db, 'product_categories', categoryId);
 
@@ -91,9 +94,15 @@ export class GeminiService {
       });
       
       const jsonString = response.text.trim();
-      const parsedData = JSON.parse(jsonString);
+      const parsedData: Omit<Product, 'id' | 'stock' | 'category'>[] = JSON.parse(jsonString);
 
-      return parsedData as Product[];
+      return parsedData.map(p => ({
+        ...p,
+        id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        stock: Math.floor(Math.random() * 100) + 1,
+        category: category,
+      }));
+
     } catch (error) {
       console.error('Error calling Gemini API:', error);
       throw new Error('Could not generate product ideas from the AI model.');
